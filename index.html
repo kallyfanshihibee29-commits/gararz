@@ -29,8 +29,9 @@
     .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
     @media(min-width:720px){ .grid{grid-template-columns:repeat(3,1fr)} .wrap{padding:20px 28px 120px} }
 
-    /* card simplified */
+    /* card simplified; no reserved image space when brak zdjęcia */
     .card{background:var(--panel-grad);border-radius:12px;padding:12px;border:1px solid rgba(255,255,255,0.04);display:flex;flex-direction:column;gap:10px;position:relative}
+    .card.no-img{padding-top:10px;padding-bottom:12px}
     .card .img{height:150px;border-radius:8px;overflow:hidden;background:#081522}
     .card .img img{width:100%;height:100%;object-fit:cover}
 
@@ -44,7 +45,7 @@
     /* three-dots menu */
     .menu-wrap{position:absolute;top:12px;right:12px}
     .menu-btn{background:transparent;border:0;color:var(--muted);font-size:20px;cursor:pointer;padding:6px;border-radius:8px}
-    .menu{position:absolute;right:0;top:36px;background:linear-gradient(180deg,#0b1622,#07121a);border:1px solid rgba(255,255,255,0.03);padding:6px;border-radius:8px;display:none;min-width:120px;box-shadow:0 6px 18px rgba(0,0,0,0.6)}
+    .menu{position:absolute;right:0;top:36px;background:linear-gradient(180deg,#0b1622,#07121a);border:1px solid rgba(255,255,255,0.03);padding:6px;border-radius:8px;display:none;min-width:140px;box-shadow:0 6px 18px rgba(0,0,0,0.6)}
     .menu button{display:block;width:100%;text-align:left;padding:8px;border-radius:6px;border:0;background:transparent;color:var(--muted);cursor:pointer}
     .menu button:hover{background:rgba(255,255,255,0.02)}
 
@@ -62,6 +63,7 @@
 
     .img-row{display:flex;gap:10px;align-items:center;margin-top:10px}
     .img-preview{width:120px;height:120px;border-radius:10px;background:#06121a;border:1px dashed rgba(255,255,255,0.03);display:flex;align-items:center;justify-content:center;overflow:hidden}
+    .img-preview.hidden{display:none;width:0;height:0}
     .img-preview img{width:100%;height:100%;object-fit:cover}
     .file-actions{display:flex;flex-direction:column;gap:8px}
     .small-btn{padding:8px 10px;border-radius:8px;border:1px solid rgba(255,255,255,0.03);background:transparent;color:var(--muted)}
@@ -74,9 +76,11 @@
     .btn.ghost{background:transparent;border:1px solid rgba(255,255,255,0.03);color:var(--muted)}
 
     /* filter panel */
-    .filter-panel{position:absolute;left:12px;top:64px;background:linear-gradient(180deg,#081522,#06101a);border:1px solid rgba(255,255,255,0.03);padding:12px;border-radius:10px;display:none;z-index:95;width:260px}
-    .filter-panel label{margin-top:6px}
-    .filter-row{display:flex;gap:8px;align-items:center}
+    .filter-panel{position:absolute;left:12px;top:84px;background:linear-gradient(180deg,#081522,#06101a);border:1px solid rgba(255,255,255,0.03);padding:12px;border-radius:10px;display:none;z-index:95;width:260px}
+
+    /* settings panel */
+    .settings-panel{position:absolute;right:12px;top:84px;background:linear-gradient(180deg,#081522,#06101a);border:1px solid rgba(255,255,255,0.03);padding:12px;border-radius:10px;display:none;z-index:96;width:280px}
+    .settings-panel .meta{font-size:13px;color:var(--muted);margin-bottom:8px}
 
     /* detail modal */
     .detail-back{position:fixed;inset:0;display:none;align-items:center;justify-content:center;z-index:90}
@@ -103,6 +107,7 @@
     <div class="search-wrap">
       <div class="search"><svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path stroke="currentColor" stroke-width="1.4" d="M21 21l-4.35-4.35"/><circle cx="11" cy="11" r="6" stroke="currentColor" stroke-width="1.4"/></svg><input id="search" placeholder="Szukaj: nazwa, typ, kod, słowo..." /></div>
       <button id="filterBtn" class="filter-btn">Filtruj ▾</button>
+      <button id="settingsToggle" class="filter-btn">Ustawienia ⚙️</button>
     </div>
 
     <div id="filterPanel" class="filter-panel">
@@ -114,6 +119,17 @@
       </div>
       <div style="margin-top:8px"><input id="filterColor" type="color" value="#0B69FF" style="width:100%;height:38px;border-radius:8px;border:1px solid rgba(255,255,255,0.03)" /></div>
       <div style="display:flex;gap:8px;margin-top:10px"><button id="filterApply" class="btn">Zastosuj</button><button id="filterClear" class="btn ghost">Wyczyść</button></div>
+    </div>
+
+    <div id="settingsPanel" class="settings-panel">
+      <div style="display:flex;justify-content:space-between;align-items:center"><strong>Ustawienia</strong><button id="settingsClose" class="small-btn">X</button></div>
+      <div class="meta" id="savedMeta">Brak zapisanej kompozycji</div>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <button id="saveComp" class="btn">Zapisz kompozycję</button>
+        <button id="restoreComp" class="btn ghost">Wróć do zapisanej</button>
+      </div>
+      <div style="margin-top:8px;display:flex;gap:8px"><button id="overwriteComp" class="btn ghost">Nadpisz</button><button id="deleteComp" class="small-btn">Usuń zapis</button></div>
+      <div style="font-size:12px;color:var(--muted);margin-top:10px">Zapisana kompozycja to snapshot listy ofert — możesz ją przywrócić nawet jeśli samochody zostały sprzedane. Nadpisz, żeby zaktualizować.</div>
     </div>
 
     <div class="top-controls">
@@ -137,7 +153,7 @@
         <div style="width:110px"><label>Rabat</label><select id="f_discount"><option>10</option><option>20</option><option>30</option></select></div>
       </div>
       <div style="display:flex;gap:8px;margin-top:8px">
-        <div style="flex:1"><label>Rodzaj</label><select id="f_type"><option value="zwykly">zwykly</option><option value="sluzba">sluzba</option><option value="autobus">autobus</option></select></div>
+        <div style="flex:1"><label>Rodzaj</label><select id="f_type"><option value="zwykly">Zwykły</option><option value="sluzba">Służba</option><option value="autobus">Autobus</option></select></div>
         <div style="width:140px"><label>Kategoria</label><select id="f_cat"><option value="classic">Klasyka</option><option value="modern">Nowoczesność</option></select></div>
       </div>
 
@@ -178,8 +194,8 @@
   <div id="detailBack" class="detail-back"><div id="detailBox" class="detail"><div class="left"><img id="detailImg" src="" alt=""></div><div class="right"><div style="display:flex;justify-content:space-between;align-items:center"><h3 id="detailName">Nazwa</h3><div class="menu-wrap"><button id="detailMenuBtn" class="menu-btn">⋮</button><div id="detailMenu" class="menu"><button id="detailEditBtn">Edytuj</button><button id="detailDeleteBtn">Usuń</button></div></div></div><div id="detailCode" style="color:var(--muted)"></div><div style="display:flex;align-items:center;margin-top:8px"><div id="detailPrice" class="price"></div><div id="detailOld" class="old" style="margin-left:8px;color:var(--muted)"></div></div><div id="detailDesc" style="margin-top:12px"></div><div style="margin-top:12px;display:flex;gap:8px;align-items:center"><div id="detailColor" style="width:20px;height:20px;border-radius:4px;border:1px solid rgba(255,255,255,0.05)"></div><div style="color:var(--muted)">Kolor samochodu</div></div><div id="buyArea" style="margin-top:14px"></div><div style="display:flex;justify-content:flex-end;margin-top:12px"><button id="detailClose" class="small-btn">Zamknij</button></div></div></div></div>
 
 <script>
-/* GarageMarket — dodano: 3-kropki z menu (edytuj/usuń), filtry (cena od/do, kolor), edycja oferty */
-const LS_OFFERS='gm_offers_v1'; const LS_LASTID='gm_lastid_v1';
+/* GarageMarket — poprawki: budka (box zdjęcia) kurczy się kiedy brak zdjęcia; polskie nazwy rodzaju i wielka litera; dalej: edit/delete, filtry, kompozycje */
+const LS_OFFERS='gm_offers_v1'; const LS_LASTID='gm_lastid_v1'; const LS_SAVED='gm_saved_comp_v1';
 let offers = loadOffers(); let stagedImgData = null; let activeTab='all'; let editingId = null;
 
 function loadOffers(){try{return JSON.parse(localStorage.getItem(LS_OFFERS)||'[]')||[]}catch(e){return []}}
@@ -188,13 +204,26 @@ function getNextId(){let id=Number(localStorage.getItem(LS_LASTID)||'0')+1; loca
 function round2(n){return Math.round(n*100)/100}
 function formatPrice(n){return Number(n).toFixed(2)+' PLN'}
 
+// helper: typ label (polskie znaki, duża litera)
+const TYPE_LABELS = { zwykly: 'Zwykły', sluzba: 'Służba', autobus: 'Autobus' };
+function typeLabel(t){ if(!t) return ''; return TYPE_LABELS[t] || (t.charAt(0).toUpperCase()+t.slice(1)); }
+
+// saved composition helpers
+function getSavedComposition(){try{return JSON.parse(localStorage.getItem(LS_SAVED)||'null')}catch(e){return null}}
+function saveComposition(){ const snapshot = { offers: JSON.parse(JSON.stringify(offers)), savedAt: Date.now() }; localStorage.setItem(LS_SAVED, JSON.stringify(snapshot)); updateSavedMeta(); alert('Kompozycja zapisana — możesz ją przywrócić później.'); }
+function overwriteComposition(){ if(!confirm('Nadpisać istniejącą zapisaną kompozycję?')) return; saveComposition(); }
+function restoreComposition(){ const saved = getSavedComposition(); if(!saved){ alert('Brak zapisanej kompozycji.'); return } if(!confirm('Przywrócić zapisaną kompozycję? Aktualny stan ofert zostanie zastąpiony.')) return; offers = JSON.parse(JSON.stringify(saved.offers)); saveOffers(); render(); alert('Przywrócono zapisaną kompozycję.'); }
+function deleteSavedComposition(){ if(!confirm('Usunąć zapisaną kompozycję?')) return; localStorage.removeItem(LS_SAVED); updateSavedMeta(); alert('Usunięto zapis.'); }
+function updateSavedMeta(){ const meta = document.getElementById('savedMeta'); const s = getSavedComposition(); if(!s){ meta.textContent = 'Brak zapisanej kompozycji'; } else { const d = new Date(s.savedAt); meta.textContent = 'Zapisano: '+d.toLocaleString()+', pozycje: '+(s.offers?.length||0); } }
+
 // render
 const grid = document.getElementById('grid'); const emptyState = document.getElementById('emptyState');
 function render(){ const qRaw = document.getElementById('search').value.trim().toLowerCase(); const q = qRaw;
   let list = offers.filter(o=>!o.sold);
   if(activeTab==='classic') list = list.filter(o=>o.cat==='classic'); if(activeTab==='modern') list = list.filter(o=>o.cat==='modern');
   // filters
-  const min = parseFloat(document.getElementById('filterMin').value || ''); const max = parseFloat(document.getElementById('filterMax').value || ''); const colorEnabled = document.getElementById('filterColorEnabled').checked; const fcolor = document.getElementById('filterColor').value.toLowerCase();
+  const minVal = document.getElementById('filterMin').value; const maxVal = document.getElementById('filterMax').value; const min = minVal === '' ? NaN : parseFloat(minVal); const max = maxVal === '' ? NaN : parseFloat(maxVal);
+  const colorEnabled = document.getElementById('filterColorEnabled').checked; const fcolor = document.getElementById('filterColor').value.toLowerCase();
   if(!isNaN(min)) list = list.filter(o=>Number(o.price) >= min);
   if(!isNaN(max)) list = list.filter(o=>Number(o.price) <= max);
   if(colorEnabled){ list = list.filter(o=> (o.color||'').toLowerCase() === fcolor ); }
@@ -204,21 +233,21 @@ function render(){ const qRaw = document.getElementById('search').value.trim().t
 }
 
 function cardFromOffer(o){ const el=document.createElement('div'); el.className='card'; el.dataset.id=o.id;
-  const imgWrap=document.createElement('div'); imgWrap.className='img'; const img=document.createElement('img'); img.src=o.img||placeholderDataURL(o.type); imgWrap.appendChild(img); el.appendChild(imgWrap);
+  // jeśli jest obrazek — pokaż blok zdjęcia, w przeciwnym razie nie rezerwujemy miejsca i dodajemy klasę no-img
+  if(o.img){ const imgWrap=document.createElement('div'); imgWrap.className='img'; const img=document.createElement('img'); img.src=o.img; imgWrap.appendChild(img); el.appendChild(imgWrap); } else { el.classList.add('no-img'); }
+
   const r1=document.createElement('div'); r1.className='row'; const name=document.createElement('div'); name.className='name'; name.textContent=o.name||'--'; const price=document.createElement('div'); price.className='price'; price.textContent=formatPrice(o.price); r1.appendChild(name); r1.appendChild(price); el.appendChild(r1);
-  const tags=document.createElement('div'); tags.className='tags'; const pill=document.createElement('div'); pill.className='pill'; pill.textContent=o.type||''; pill.style.padding='6px'; pill.style.background='rgba(255,255,255,0.02)'; pill.style.borderRadius='8px'; pill.style.fontSize='12px'; pill.style.color='var(--muted)'; const sw=document.createElement('div'); sw.className='sw'; sw.style.background=o.color||'#fff'; tags.appendChild(pill); tags.appendChild(sw); el.appendChild(tags);
+
+  const tags=document.createElement('div'); tags.className='tags'; const pill=document.createElement('div'); pill.className='pill'; pill.textContent=typeLabel(o.type); pill.style.padding='6px'; pill.style.background='rgba(255,255,255,0.02)'; pill.style.borderRadius='8px'; pill.style.fontSize='12px'; pill.style.color='var(--muted)'; const sw=document.createElement('div'); sw.className='sw'; sw.style.background=o.color||'#fff'; tags.appendChild(pill); tags.appendChild(sw); el.appendChild(tags);
 
   // menu (three dots)
   const menuWrap = document.createElement('div'); menuWrap.className='menu-wrap'; const menuBtn = document.createElement('button'); menuBtn.className='menu-btn'; menuBtn.textContent='⋮'; menuWrap.appendChild(menuBtn);
   const menu = document.createElement('div'); menu.className='menu'; const mEdit = document.createElement('button'); mEdit.textContent='Edytuj'; const mDelete = document.createElement('button'); mDelete.textContent='Usuń'; menu.appendChild(mEdit); menu.appendChild(mDelete); menuWrap.appendChild(menu); el.appendChild(menuWrap);
 
-  menuBtn.addEventListener('click',(e)=>{ e.stopPropagation(); // toggle
-    const shown = menu.style.display==='block'; document.querySelectorAll('.menu').forEach(x=>x.style.display='none'); menu.style.display = shown ? 'none' : 'block'; });
-  // edit/delete actions
+  menuBtn.addEventListener('click',(e)=>{ e.stopPropagation(); const shown = menu.style.display==='block'; document.querySelectorAll('.menu').forEach(x=>x.style.display='none'); menu.style.display = shown ? 'none' : 'block'; });
   mEdit.addEventListener('click',(e)=>{ e.stopPropagation(); menu.style.display='none'; openSheetForEdit(o.id); });
   mDelete.addEventListener('click',(e)=>{ e.stopPropagation(); menu.style.display='none'; if(confirm('Na pewno usunąć ofertę «'+o.name+'»?')) deleteOffer(o.id); });
 
-  // clicking card opens details
   el.addEventListener('click',()=>openDetail(o.id));
   return el }
 
@@ -226,13 +255,17 @@ function placeholderDataURL(type){ const svg=`<svg xmlns='http://www.w3.org/2000
 
 // UI bindings
 const fab = document.getElementById('fab'); const sheetBack = document.getElementById('sheetBack'); const sheet = document.getElementById('sheet'); const sheetSave = document.getElementById('sheetSave'); const sheetCancel = document.getElementById('sheetCancel');
+const filterBtn = document.getElementById('filterBtn'); const filterPanel = document.getElementById('filterPanel'); const filterClose = document.getElementById('filterClose'); const filterApply = document.getElementById('filterApply'); const filterClear = document.getElementById('filterClear');
+const settingsToggle = document.getElementById('settingsToggle'); const settingsPanel = document.getElementById('settingsPanel'); const settingsClose = document.getElementById('settingsClose'); const saveCompBtn = document.getElementById('saveComp'); const restoreCompBtn = document.getElementById('restoreComp'); const overwriteCompBtn = document.getElementById('overwriteComp'); const deleteCompBtn = document.getElementById('deleteComp');
+
 fab.addEventListener('click',()=>openSheet()); sheetCancel.addEventListener('click',closeSheet); sheetSave.addEventListener('click',saveOffer);
 document.getElementById('search').addEventListener('input',render);
-Array.from(document.querySelectorAll('.tab')).forEach(t=>t.addEventListener('click',e=>{ document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active')); e.currentTarget.classList.add('active'); activeTab=e.currentTarget.dataset.tab; render(); }))
+Array.from(document.querySelectorAll('.tab')).forEach(t=>t.addEventListener('click',e=>{ document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active')); e.currentTarget.classList.add('active'); activeTab=e.currentTarget.dataset.tab; render(); }));
 
-// filter panel
-const filterBtn = document.getElementById('filterBtn'); const filterPanel = document.getElementById('filterPanel'); const filterClose = document.getElementById('filterClose'); const filterApply = document.getElementById('filterApply'); const filterClear = document.getElementById('filterClear');
-filterBtn.addEventListener('click',()=>{ filterPanel.style.display = filterPanel.style.display==='block' ? 'none' : 'block'; }); filterClose.addEventListener('click',()=>{ filterPanel.style.display='none'; }); filterApply.addEventListener('click',()=>{ filterPanel.style.display='none'; render(); }); filterClear.addEventListener('click',()=>{ document.getElementById('filterMin').value=''; document.getElementById('filterMax').value=''; document.getElementById('filterColorEnabled').checked=false; render(); });
+filterBtn.addEventListener('click',()=>{ filterPanel.style.display = filterPanel.style.display==='block' ? 'none' : 'block'; settingsPanel.style.display='none'; }); filterClose.addEventListener('click',()=>{ filterPanel.style.display='none'; }); filterApply.addEventListener('click',()=>{ filterPanel.style.display='none'; render(); }); filterClear.addEventListener('click',()=>{ document.getElementById('filterMin').value=''; document.getElementById('filterMax').value=''; document.getElementById('filterColorEnabled').checked=false; render(); });
+
+settingsToggle.addEventListener('click',()=>{ settingsPanel.style.display = settingsPanel.style.display==='block' ? 'none' : 'block'; filterPanel.style.display='none'; updateSavedMeta(); }); settingsClose.addEventListener('click',()=>{ settingsPanel.style.display='none'; });
+saveCompBtn.addEventListener('click',saveComposition); overwriteCompBtn.addEventListener('click',overwriteComposition); restoreCompBtn.addEventListener('click',restoreComposition); deleteCompBtn.addEventListener('click',deleteSavedComposition);
 
 // swatches
 const PRESET_COLORS=['#0B69FF','#0ea5a4','#d4a017','#111827','#e11d48','#06b6d4','#f97316','#94a3b8'];
@@ -244,8 +277,8 @@ buildSwatches();
 const fileCapture = document.getElementById('f_img_capture'); const fileLibrary = document.getElementById('f_img_library'); const btnCamera = document.getElementById('btnCamera'); const btnLibrary = document.getElementById('btnLibrary'); const btnRemoveImg = document.getElementById('btnRemoveImg'); const imgPreview = document.getElementById('imgPreview');
 btnCamera.addEventListener('click',()=>fileCapture.click()); btnLibrary.addEventListener('click',()=>fileLibrary.click());
 [fileCapture,fileLibrary].forEach(input => input.addEventListener('change', async (e)=>{ const f = e.target.files && e.target.files[0]; if(!f) return; try{ stagedImgData = await fileToSquareDataURL(f,800); showPreview(stagedImgData); updatePreview(); }catch(err){ console.error(err); alert('Błąd przetwarzania zdjęcia'); } }));
-btnRemoveImg.addEventListener('click',()=>{ stagedImgData=null; fileCapture.value=''; fileLibrary.value=''; imgPreview.innerHTML='120×120'; updatePreview(); });
-function showPreview(dataUrl){ imgPreview.innerHTML=''; const im=document.createElement('img'); im.src=dataUrl; imgPreview.appendChild(im); }
+btnRemoveImg.addEventListener('click',()=>{ stagedImgData=null; fileCapture.value=''; fileLibrary.value=''; imgPreview.innerHTML=''; imgPreview.classList.add('hidden'); updatePreview(); });
+function showPreview(dataUrl){ imgPreview.innerHTML=''; const im=document.createElement('img'); im.src=dataUrl; imgPreview.appendChild(im); imgPreview.classList.remove('hidden'); }
 async function fileToSquareDataURL(file,size=800){ return new Promise((resolve,reject)=>{ const reader = new FileReader(); reader.onload = async ()=>{ try{ let blob = new Blob([reader.result]); if(reader.result instanceof ArrayBuffer){ blob = new Blob([reader.result]); } let bitmap = null; if(window.createImageBitmap){ bitmap = await createImageBitmap(blob); } else { const tmp = new Image(); tmp.src = URL.createObjectURL(blob); await tmp.decode(); const cvs=document.createElement('canvas'); cvs.width=tmp.width; cvs.height=tmp.height; const ctx=cvs.getContext('2d'); ctx.drawImage(tmp,0,0); bitmap = await createImageBitmap(cvs); } const w = bitmap.width, h = bitmap.height; const s = Math.min(w,h); const sx = Math.floor((w - s)/2); const sy = Math.floor((h - s)/2); const canvas = document.createElement('canvas'); canvas.width = size; canvas.height = size; const ctx = canvas.getContext('2d'); ctx.fillStyle='#06121a'; ctx.fillRect(0,0,size,size); ctx.drawImage(bitmap, sx, sy, s, s, 0, 0, size, size); const data = canvas.toDataURL('image/jpeg',0.88); resolve(data); }catch(err){ try{ const fr2 = new FileReader(); fr2.onload = ()=>{ const img = new Image(); img.onload = ()=>{ const w=img.width,h=img.height; const s=Math.min(w,h); const sx=Math.floor((w-s)/2); const sy=Math.floor((h-s)/2); const canvas=document.createElement('canvas'); canvas.width=size; canvas.height=size; const ctx=canvas.getContext('2d'); ctx.fillStyle='#06121a'; ctx.fillRect(0,0,size,size); ctx.drawImage(img,sx,sy,s,s,0,0,size,size); resolve(canvas.toDataURL('image/jpeg',0.88)); }; img.onerror=()=>reject(new Error('img load err')); img.src = fr2.result; }; fr2.onerror=()=>reject(new Error('fr2 err')); fr2.readAsDataURL(file); }catch(e){ reject(e); } } }; reader.onerror = ()=>reject(new Error('file read err')); reader.readAsArrayBuffer(file); }); }
 
 // eyedropper
@@ -259,8 +292,8 @@ async function saveOffer(){ const name = nameInput.value.trim(); const price = p
   offers.push(item); saveOffers(); closeSheet(); render(); alert('Zapisano ofertę: '+code); }
 
 // open sheet for new or edit
-function openSheet(){ editingId = null; document.getElementById('sheetTitle').textContent='Nowa oferta'; stagedImgData=null; fileCapture.value=''; fileLibrary.value=''; imgPreview.innerHTML='120×120'; colorInput.value=PRESET_COLORS[0]; nameInput.value=''; priceInput.value=''; descInput.value=''; typeInput.value='zwykly'; discountInput.value='10'; catInput.value='classic'; keywordsInput.value=''; sheetBack.style.display='block'; setTimeout(()=>sheet.classList.add('show'),20); window.scrollTo({top:0}); updatePreview(); }
-function openSheetForEdit(id){ const o = offers.find(x=>x.id===id); if(!o) return alert('Nie znaleziono oferty'); editingId = o.id; document.getElementById('sheetTitle').textContent='Edytuj ofertę'; nameInput.value = o.name || ''; priceInput.value = Number(o.price).toFixed(2); descInput.value = o.desc || ''; typeInput.value = o.type || 'zwykly'; discountInput.value = o.discount || '10'; catInput.value = o.cat || 'classic'; colorInput.value = o.color || PRESET_COLORS[0]; keywordsInput.value = (o.keywords||[]).join(', '); stagedImgData = o.img || null; if(stagedImgData) showPreview(stagedImgData); sheetBack.style.display='block'; setTimeout(()=>sheet.classList.add('show'),20); updatePreview(); }
+function openSheet(){ editingId = null; document.getElementById('sheetTitle').textContent='Nowa oferta'; stagedImgData=null; fileCapture.value=''; fileLibrary.value=''; imgPreview.innerHTML=''; imgPreview.classList.add('hidden'); colorInput.value=PRESET_COLORS[0]; nameInput.value=''; priceInput.value=''; descInput.value=''; typeInput.value='zwykly'; discountInput.value='10'; catInput.value='classic'; keywordsInput.value=''; sheetBack.style.display='block'; setTimeout(()=>sheet.classList.add('show'),20); window.scrollTo({top:0}); updatePreview(); }
+function openSheetForEdit(id){ const o = offers.find(x=>x.id===id); if(!o) return alert('Nie znaleziono oferty'); editingId = o.id; document.getElementById('sheetTitle').textContent='Edytuj ofertę'; nameInput.value = o.name || ''; priceInput.value = Number(o.price).toFixed(2); descInput.value = o.desc || ''; typeInput.value = o.type || 'zwykly'; discountInput.value = o.discount || '10'; catInput.value = o.cat || 'classic'; colorInput.value = o.color || PRESET_COLORS[0]; keywordsInput.value = (o.keywords||[]).join(', '); stagedImgData = o.img || null; if(stagedImgData){ showPreview(stagedImgData); } else { imgPreview.innerHTML=''; imgPreview.classList.add('hidden'); } sheetBack.style.display='block'; setTimeout(()=>sheet.classList.add('show'),20); updatePreview(); }
 function closeSheet(){ sheet.classList.remove('show'); setTimeout(()=>sheetBack.style.display='none',350); }
 
 // detail modal
@@ -270,7 +303,11 @@ detailMenuBtn.addEventListener('click',(e)=>{ e.stopPropagation(); detailMenu.st
 detailEditBtn.addEventListener('click',()=>{ const id = Number(detailBox.dataset.offerId); detailMenu.style.display='none'; openSheetForEdit(id); detailBack.style.display='none'; detailBox.classList.remove('show'); });
 detailDeleteBtn.addEventListener('click',()=>{ const id = Number(detailBox.dataset.offerId); detailMenu.style.display='none'; const o = offers.find(x=>x.id===id); if(!o) return; if(confirm('Na pewno usunąć ofertę «'+o.name+'»?')){ deleteOffer(o.id); detailBack.style.display='none'; detailBox.classList.remove('show'); } });
 
-function openDetail(id){ const o = offers.find(x=>x.id===id); if(!o) return alert('Nie znaleziono oferty'); detailImg.src = o.img || placeholderDataURL(o.type); detailName.textContent = o.name; detailCode.textContent = 'kod: '+o.code; detailPrice.textContent = formatPrice(o.price); detailDesc.textContent = o.desc || ''; detailColor.style.background = o.color || '#ffffff'; buyArea.innerHTML=''; detailBox.dataset.offerId = o.id; detailMenu.style.display='none';
+function openDetail(id){ const o = offers.find(x=>x.id===id); if(!o) return alert('Nie znaleziono oferty');
+  // jeśli brak zdjęcia — ukryj lewy panel i rozciągnij prawy
+  const left = detailBox.querySelector('.left'); const right = detailBox.querySelector('.right');
+  if(o.img){ left.style.display='block'; detailImg.src = o.img; right.style.width='320px'; } else { left.style.display='none'; right.style.width='100%'; }
+  detailName.textContent = o.name; detailCode.textContent = 'kod: '+o.code; detailPrice.textContent = formatPrice(o.price); detailDesc.textContent = o.desc || ''; detailColor.style.background = o.color || '#ffffff'; buyArea.innerHTML=''; detailBox.dataset.offerId = o.id; detailMenu.style.display='none';
   if(o.sold){ buyArea.textContent='Sprzedane'; } else { const priceLabel=document.createElement('div'); priceLabel.textContent='Potwierdź lub zmień cenę:'; const priceInput = document.createElement('input'); priceInput.type='number'; priceInput.step='0.01'; priceInput.value = Number(o.price).toFixed(2); priceInput.style.width='100%'; priceInput.style.marginTop='8px'; const genBtn = document.createElement('button'); genBtn.className='btn'; genBtn.textContent='Generuj kod i kup'; genBtn.style.marginTop='10px'; buyArea.appendChild(priceLabel); buyArea.appendChild(priceInput); buyArea.appendChild(genBtn);
     genBtn.addEventListener('click', ()=>{ const finalPrice = parseFloat(priceInput.value); if(isNaN(finalPrice) || finalPrice<0){ alert('Cena musi być poprawną liczbą >=0'); return } const code = generateBuyCode(6); buyArea.innerHTML=''; const codeBox=document.createElement('div'); codeBox.textContent='Kod zakupowy: '+code; codeBox.style.marginTop='8px'; codeBox.style.padding='8px'; codeBox.style.background='rgba(255,255,255,0.02)'; const verify=document.createElement('input'); verify.type='text'; verify.placeholder='Wpisz kod'; verify.style.width='100%'; verify.style.marginTop='8px'; const confirmBtn=document.createElement('button'); confirmBtn.className='btn'; confirmBtn.textContent='Potwierdź kod i kup za '+formatPrice(finalPrice); confirmBtn.style.marginTop='8px'; buyArea.appendChild(codeBox); buyArea.appendChild(verify); buyArea.appendChild(confirmBtn);
       confirmBtn.addEventListener('click', ()=>{ if(verify.value.trim().toUpperCase() !== code){ alert('Kod niepoprawny'); return } buyArea.innerHTML='Kupione! Dzięki :)'; setTimeout(()=>{ finishBuy(o, finalPrice); },600); }); }); }
@@ -283,20 +320,20 @@ function generateBuyCode(len=6){ const chars='ABCDEFGHJKMNPQRSTUVWXYZ23456789'; 
 // delete
 function deleteOffer(id){ offers = offers.filter(x=>x.id!==id); saveOffers(); render(); }
 
-// live preview in sheet
+// live preview in sheet — jeśli brak zdjęcia, ukrywamy budkę i karta jest kompaktowa
 const sheetPreview = document.getElementById('sheetPreview');
-function updatePreview(){ const name = nameInput.value.trim() || 'Nazwa'; const price = (priceInput.value ? formatPrice(priceInput.value) : '0.00 PLN'); const type = typeInput.value || 'typ'; const color = colorInput.value || PRESET_COLORS[0]; const img = stagedImgData || placeholderDataURL(type);
+function updatePreview(){ const name = nameInput.value.trim() || 'Nazwa'; const price = (priceInput.value ? formatPrice(priceInput.value) : '0.00 PLN'); const type = typeInput.value || 'typ'; const color = colorInput.value || PRESET_COLORS[0]; const img = stagedImgData || null;
   sheetPreview.innerHTML = '';
   const card = document.createElement('div'); card.className='card'; card.style.padding='8px'; card.style.display='flex'; card.style.flexDirection='column';
-  const imgWrap=document.createElement('div'); imgWrap.className='img'; imgWrap.style.height='120px'; const im=document.createElement('img'); im.src = img; imgWrap.appendChild(im); card.appendChild(imgWrap);
+  if(img){ const imgWrap=document.createElement('div'); imgWrap.className='img'; imgWrap.style.height='120px'; const im=document.createElement('img'); im.src = img; imgWrap.appendChild(im); card.appendChild(imgWrap); } else { card.classList.add('no-img'); }
   const r1=document.createElement('div'); r1.className='row'; const nm=document.createElement('div'); nm.className='name'; nm.textContent=name; const pr=document.createElement('div'); pr.className='price'; pr.textContent=price; r1.appendChild(nm); r1.appendChild(pr); card.appendChild(r1);
-  const tags=document.createElement('div'); tags.className='tags'; const pill=document.createElement('div'); pill.className='pill'; pill.textContent=type; pill.style.padding='6px'; pill.style.background='rgba(255,255,255,0.02)'; pill.style.borderRadius='8px'; pill.style.fontSize='12px'; pill.style.color='var(--muted)'; const sw=document.createElement('div'); sw.className='sw'; sw.style.background=color; tags.appendChild(pill); tags.appendChild(sw); card.appendChild(tags);
+  const tags=document.createElement('div'); tags.className='tags'; const pill=document.createElement('div'); pill.className='pill'; pill.textContent=typeLabel(type); pill.style.padding='6px'; pill.style.background='rgba(255,255,255,0.02)'; pill.style.borderRadius='8px'; pill.style.fontSize='12px'; pill.style.color='var(--muted)'; const sw=document.createElement('div'); sw.className='sw'; sw.style.background=color; tags.appendChild(pill); tags.appendChild(sw); card.appendChild(tags);
   sheetPreview.appendChild(card);
 }
 [nameInput,priceInput,typeInput,descInput,keywordsInput,colorInput].forEach(el=>el.addEventListener('input',updatePreview));
 
 // init
-render(); updatePreview(); // close any open menus on click outside
+updateSavedMeta(); render(); updatePreview(); // close any open menus on click outside
 window.addEventListener('click',()=>{ document.querySelectorAll('.menu').forEach(x=>x.style.display='none'); document.getElementById('detailMenu').style.display='none'; }); window._gm={offers,saveOffers,getNextId};
 </script>
 </body>
